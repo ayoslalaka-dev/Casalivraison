@@ -1,0 +1,64 @@
+/*
+ARBORESCENCE DU PROJET:
+.
+├── backend
+│   ├── config
+│   │   └── database.js
+│   ├── src
+│   │   ├── controllers
+│   │   │   ├── authController.js
+│   │   │   ├── orderController.js
+│   │   │   └── restaurantController.js
+│   │   ├── middlewares
+│   │   │   ├── errorHandler.js
+│   │   │   └── notFound.js
+│   │   ├── models
+│   │   │   ├── index.js
+│   │   │   ├── user.js
+│   │   │   └── ...
+│   │   ├── routes
+│   │   │   ├── index.js
+│   │   │   ├── auth.js
+│   │   │   ├── orders.js
+│   │   │   └── restaurants.js
+│   │   ├── services
+│   │   │   ├── authService.js
+│   │   │   ├── orderService.js
+│   │   │   └── restaurantService.js
+│   │   ├── app.js
+│   │   └── server.js
+│   ├── .env
+│   ├── package.json
+│   └── README.md
+*/
+
+// backend/src/server.js
+const dotenv = require('dotenv');
+const { sequelize } = require('./models');
+const app = require('./app');
+
+dotenv.config();
+
+const PORT = process.env.PORT || 3000;
+
+const startServer = async () => {
+    try {
+        await sequelize.authenticate();
+        console.log('Database connected successfully.');
+
+        // Sync models - En dev seulement. En prod, utiliser les migrations.
+        if (process.env.NODE_ENV === 'development') {
+            await sequelize.sync();
+            console.log('Database synced.');
+        }
+
+        app.listen(PORT, () => {
+            console.log(`Server running on port ${PORT}`);
+        });
+    } catch (error) {
+        console.error('Unable to connect to the database:', error);
+        process.exit(1);
+    }
+};
+
+startServer();
