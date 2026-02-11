@@ -13,6 +13,7 @@ import RestaurantListScreen from '../screens/RestaurantListScreen';
 import RestaurantDetailScreen from '../screens/RestaurantDetailScreen';
 import CartScreen from '../screens/CartScreen';
 import OrderHistoryScreen from '../screens/OrderHistoryScreen';
+import OrderTrackingScreen from '../screens/OrderTrackingScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -21,6 +22,12 @@ const HomeStack = () => (
     <Stack.Navigator>
         <Stack.Screen name="Restaurants" component={RestaurantListScreen} options={{ title: 'CasaLivraison' }} />
         <Stack.Screen name="RestaurantDetail" component={RestaurantDetailScreen} options={{ title: 'Menu' }} />
+    </Stack.Navigator>
+);
+
+const CartStack = () => (
+    <Stack.Navigator>
+        <Stack.Screen name="CartMain" component={CartScreen} options={{ title: 'Mon Panier' }} />
     </Stack.Navigator>
 );
 
@@ -64,7 +71,22 @@ export const AppNavigator = () => {
 
     return (
         <NavigationContainer>
-            {userToken ? <AppTabs /> : <AuthStack />}
+            {userToken ? (
+                <Stack.Navigator screenOptions={{ headerShown: false }}>
+                    <Stack.Screen name="MainTabs" component={AppTabs} />
+                    <Stack.Screen
+                        name="OrderTracking"
+                        component={OrderTrackingScreen}
+                        options={{
+                            headerShown: true,
+                            title: 'Suivi de commande',
+                            headerBackTitle: 'Retour'
+                        }}
+                    />
+                </Stack.Navigator>
+            ) : (
+                <AuthStack />
+            )}
         </NavigationContainer>
     );
 };

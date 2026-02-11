@@ -10,8 +10,10 @@ const OrderHistoryScreen = () => {
 
     const fetchOrders = async () => {
         try {
-            const response = await api.get(`/orders?userId=${userInfo.id}`);
-            setOrders(response.data);
+            const response = await api.orders.getAll(userInfo.id);
+            // API returns { success: true, data: [...] } if it follows the pattern
+            // Based on RestaurantDetail, it's response.data.data
+            setOrders(response.data.data || response.data);
         } catch (e) {
             console.error(e);
         }
