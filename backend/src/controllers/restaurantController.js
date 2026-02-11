@@ -1,44 +1,48 @@
-const { Restaurant, Menu } = require('../models');
+// backend/src/controllers/restaurantController.js
+const restaurantService = require('../services/restaurantService');
 
-exports.getAllRestaurants = async (req, res) => {
+exports.getAllRestaurants = async (req, res, next) => {
     try {
-        const { zone } = req.query;
-        const whereClause = zone ? { address: zone } : {};
-        const restaurants = await Restaurant.findAll({ where: whereClause });
-        res.json(restaurants);
+        const restaurants = await restaurantService.getAllRestaurants(req.query);
+        res.json({ success: true, data: restaurants });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        next(error);
     }
 };
 
-exports.getRestaurantMenu = async (req, res) => {
+exports.getRestaurantMenu = async (req, res, next) => {
     try {
-        const { id } = req.params;
-        const restaurant = await Restaurant.findByPk(id, {
-            include: [{ model: Menu, as: 'menus' }]
-        });
-        if (!restaurant) return res.status(404).json({ message: 'Restaurant not found' });
-        res.json(restaurant);
+        const restaurant = await restaurantService.getRestaurantDetails(req.params.id);
+        res.json({ success: true, data: restaurant });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        next(error);
     }
 };
 
-exports.createRestaurant = async (req, res) => {
+exports.getMenusByRestaurant = async (req, res, next) => {
     try {
-        const restaurant = await Restaurant.create(req.body);
-        res.status(201).json(restaurant);
+        const { restaurantId } = req.params;
+        const menus = await restaurantService.getMenusByRestaurantId(restaurantId);
+        res.json({ success: true, data: menus });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        next(error);
     }
 };
 
-exports.addMenu = async (req, res) => {
+exports.createRestaurant = async (req, res, next) => {
     try {
-        const { id } = req.params;
-        const menu = await Menu.create({ ...req.body, restaurantId: id });
-        res.status(201).json(menu);
+        const restaurant = await restaurantService.createRestaurant(req.body);
+        res.status(201).json({ success: true, data: restaurant });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        next(error);
+    }
+};
+
+exports.addMenu = async (req, res, next) => {
+    try {
+        const menu = await restaurantService.addMenu(req.params.id, req.body);
+        res.status(201).json({ success: true, data: menu });
+    } catch (error) {
+        next(error);
     }
 };

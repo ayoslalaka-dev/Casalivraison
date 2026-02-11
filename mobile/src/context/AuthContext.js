@@ -26,11 +26,35 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
+    const loginAsGuest = async () => {
+        setIsLoading(true);
+        try {
+            // Utilisateur fictif pour démo
+            const mockUser = {
+                id: 999,
+                name: 'Client Démo',
+                email: 'demo@casa.ma',
+                role: 'CLIENT',
+                address: 'Casablanca, Maarif'
+            };
+            const mockToken = 'demo-token-123';
+
+            setUserInfo(mockUser);
+            setUserToken(mockToken);
+            await SecureStore.setItemAsync('userToken', mockToken);
+            await SecureStore.setItemAsync('userInfo', JSON.stringify(mockUser));
+        } catch (e) {
+            console.log(`Guest login error ${e}`);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     const register = async (name, email, password, address) => {
         setIsLoading(true);
         try {
             await api.post('/auth/register', { name, email, password, address });
-            // Auto login or redirect to login
+            // Auto login logic could be added here
         } catch (e) {
             console.log(`Register error ${e}`);
             throw e;
@@ -70,7 +94,7 @@ export const AuthProvider = ({ children }) => {
     }, []);
 
     return (
-        <AuthContext.Provider value={{ login, logout, register, isLoading, userToken, userInfo }}>
+        <AuthContext.Provider value={{ login, logout, register, loginAsGuest, isLoading, userToken, userInfo }}>
             {children}
         </AuthContext.Provider>
     );

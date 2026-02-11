@@ -1,70 +1,46 @@
-const { Order, OrderItem, Menu } = require('../models');
+// backend/src/controllers/orderController.js
+const orderService = require('../services/orderService');
 
-exports.createOrder = async (req, res) => {
+exports.createOrder = async (req, res, next) => {
     try {
-        const { userId, items } = req.body; // items: [{ menuId, quantity }]
-
-        // Calculate total
-        let totalPrice = 0;
-        const orderItemsData = [];
-
-        for (const item of items) {
-            const menu = await Menu.findByPk(item.menuId);
-            if (!menu) continue;
-            const itemTotal = parseFloat(menu.price) * item.quantity;
-            totalPrice += itemTotal;
-            orderItemsData.push({
-                menuId: item.menuId,
-                quantity: item.quantity,
-                price: menu.price
-            });
-        }
-
-        const deliveryFee = 20.00;
-        totalPrice += deliveryFee;
-
-        const order = await Order.create({
-            userId,
-            totalPrice,
-            deliveryFee,
-            status: 'PENDING'
-        });
-
-        for (const itemData of orderItemsData) {
-            await OrderItem.create({ ...itemData, orderId: order.id });
-        }
-
-        res.status(201).json({ message: 'Order created', orderId: order.id });
+        const { userId, items } = req.body;
+        const order = await orderService.createOrder(userId, items);
+        res.status(201).json({ success: true, message: 'Order created', data: order });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        next(error);
     }
 };
 
-exports.getUserOrders = async (req, res) => {
+exports.getOrderById = async (req, res, next) => {
     try {
-        const { userId } = req.query; // Or from token middleware
-        const orders = await Order.findAll({
-            where: { userId },
-            include: [{
-                model: OrderItem,
-                as: 'items',
-                include: [{ model: Menu, as: 'menu' }]
-            }],
-            order: [['createdAt', 'DESC']]
-        });
-        res.json(orders);
+        const order = await orderService.getOrderById(req.params.id);
+        res.json({ success: true, data: order });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        next(error);
     }
 };
 
-exports.updateOrderStatus = async (req, res) => {
+exports.getUserOrders = async (req, res, next) => {
+    try {
+        // Support both query and params for userId as per request requirements
+        const userId = req.params.userId || req.query.userId;
+        if (!userId) {
+            return res.status(400).json({ success: false, message: 'UserId is required' });
+        }
+        const orders = await orderService.getUserOrders(userId);
+        res.json({ success: true, data: orders });
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.updateOrderStatus = async (req, res, next) => {
     try {
         const { id } = req.params;
-        const { status } = req.body;
-        await Order.update({ status }, { where: { id } });
-        res.json({ message: 'Status updated' });
+        const { status, driverId } = req.body;
+        const updatedOrder = await orderService.updateOrderStatus(id, status, driverId);
+        res.json({ success: true, message: 'Order status updated', data: updatedOrder });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        next(error);
     }
 };

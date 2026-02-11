@@ -1,8 +1,10 @@
+// backend/src/models/restaurant.js
 const { Model, DataTypes } = require('sequelize');
 
 module.exports = (sequelize) => {
     class Restaurant extends Model {
         static associate(models) {
+            Restaurant.belongsTo(models.Category, { foreignKey: 'categoryId', as: 'category' });
             Restaurant.hasMany(models.Menu, { foreignKey: 'restaurantId', as: 'menus' });
         }
     }
@@ -12,16 +14,16 @@ module.exports = (sequelize) => {
             type: DataTypes.STRING,
             allowNull: false
         },
-        category: {
-            type: DataTypes.STRING,
-            allowNull: false
-        },
         imageUrl: {
             type: DataTypes.STRING,
             allowNull: true
         },
         address: {
             type: DataTypes.STRING,
+            allowNull: false
+        },
+        categoryId: {
+            type: DataTypes.INTEGER,
             allowNull: false
         }
     }, {

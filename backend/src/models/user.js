@@ -1,3 +1,4 @@
+// backend/src/models/user.js
 const { Model, DataTypes } = require('sequelize');
 
 module.exports = (sequelize) => {
@@ -16,9 +17,7 @@ module.exports = (sequelize) => {
             type: DataTypes.STRING,
             allowNull: false,
             unique: true,
-            validate: {
-                isEmail: true
-            }
+            validate: { isEmail: true }
         },
         password: {
             type: DataTypes.STRING,
@@ -27,6 +26,10 @@ module.exports = (sequelize) => {
         address: {
             type: DataTypes.STRING,
             allowNull: true
+        },
+        role: {
+            type: DataTypes.ENUM('CLIENT', 'ADMIN', 'DRIVER'),
+            defaultValue: 'CLIENT'
         }
     }, {
         sequelize,

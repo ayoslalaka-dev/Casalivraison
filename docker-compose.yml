@@ -1,6 +1,26 @@
 version: '3.8'
 
 services:
+  backend:
+    build: ./backend
+    container_name: casalivraison_api
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      # L'hôte DB est le nom du service "db"
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=${DB_USER:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD:-postgres}
+      - DB_NAME=${DB_NAME:-casalivraison}
+      - PORT=3000
+    depends_on:
+      - db
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+
   db:
     image: postgres:15-alpine
     container_name: casalivraison_db

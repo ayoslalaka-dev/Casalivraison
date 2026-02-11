@@ -1,54 +1,51 @@
+// mobile/src/screens/RestaurantListScreen.js
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
 import api from '../services/api';
+import RestaurantCard from '../components/RestaurantCard';
 
 const RestaurantListScreen = ({ navigation }) => {
     const [restaurants, setRestaurants] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchRestaurants = async () => {
             try {
-                const response = await api.get('/restaurants');
-                setRestaurants(response.data);
+                const response = await api.restaurants.getAll();
+                // API returns { success: true, data: [...] }
+                setRestaurants(response.data.data);
             } catch (e) {
-                console.error(e);
+                console.error('Error fetching restaurants:', e);
+            } finally {
+                setLoading(false);
             }
         };
         fetchRestaurants();
     }, []);
 
-    const renderItem = ({ item }) => (
-        <TouchableOpacity
-            style={styles.card}
-            onPress={() => navigation.navigate('RestaurantDetail', { id: item.id })}
-        >
-            <Text style={styles.name}>{item.name}</Text>
-            <Text style={styles.category}>{item.category} - {item.address}</Text>
-        </TouchableOpacity>
-    );
+    if (loading) return <ActivityIndicator size="large" style={styles.center} />;
 
     return (
         <View style={styles.container}>
             <FlatList
                 data={restaurants}
                 keyExtractor={item => item.id.toString()}
-                renderItem={renderItem}
+                renderItem={({ item }) => (
+                    <RestaurantCard
+                        restaurant={item}
+                        onPress={() => navigation.navigate('RestaurantDetail', { id: item.id })}
+                    />
+                )}
+                contentContainerStyle={styles.list}
             />
         </View>
     );
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, padding: 10 },
-    card: {
-        backgroundColor: 'white',
-        padding: 15,
-        marginBottom: 10,
-        borderRadius: 8,
-        elevation: 2
-    },
-    name: { fontSize: 18, fontWeight: 'bold' },
-    category: { color: 'gray' }
+    container: { flex: 1, backgroundColor: '#f5f5f5' },
+    center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+    list: { padding: 15 }
 });
 
 export default RestaurantListScreen;
