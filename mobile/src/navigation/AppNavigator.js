@@ -4,9 +4,10 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { AuthContext } from '../context/AuthContext';
-import { Ionicons } from '@expo/vector-icons'; // Assurez-vous d'avoir installé @expo/vector-icons si utilisé, sinon retirez
+import { Ionicons } from '@expo/vector-icons';
 
 // Screens
+import WelcomeScreen from '../screens/WelcomeScreen';
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
 import RestaurantListScreen from '../screens/RestaurantListScreen';
@@ -14,20 +15,18 @@ import RestaurantDetailScreen from '../screens/RestaurantDetailScreen';
 import CartScreen from '../screens/CartScreen';
 import OrderHistoryScreen from '../screens/OrderHistoryScreen';
 import OrderTrackingScreen from '../screens/OrderTrackingScreen';
+import ProfileScreen from '../screens/ProfileScreen';
+import VIPSupportScreen from '../screens/VIPSupportScreen';
+import CheckoutScreen from '../screens/CheckoutScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 const HomeStack = () => (
-    <Stack.Navigator>
-        <Stack.Screen name="Restaurants" component={RestaurantListScreen} options={{ title: 'CasaLivraison' }} />
-        <Stack.Screen name="RestaurantDetail" component={RestaurantDetailScreen} options={{ title: 'Menu' }} />
-    </Stack.Navigator>
-);
-
-const CartStack = () => (
-    <Stack.Navigator>
-        <Stack.Screen name="CartMain" component={CartScreen} options={{ title: 'Mon Panier' }} />
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="Restaurants" component={RestaurantListScreen} />
+        <Stack.Screen name="RestaurantDetail" component={RestaurantDetailScreen} />
+        <Stack.Screen name="Checkout" component={CheckoutScreen} />
     </Stack.Navigator>
 );
 
@@ -40,22 +39,24 @@ const AppTabs = () => (
                 if (route.name === 'Home') iconName = focused ? 'restaurant' : 'restaurant-outline';
                 else if (route.name === 'Cart') iconName = focused ? 'cart' : 'cart-outline';
                 else if (route.name === 'Orders') iconName = focused ? 'list' : 'list-outline';
-                // Fallback si Ionicons n'est pas dispo ou pour simplifier: return null ou Text
-                // return <Ionicons name={iconName} size={size} color={color} />;
-                return null;
+                else if (route.name === 'Profile') iconName = focused ? 'person' : 'person-outline';
+                return <Ionicons name={iconName} size={size} color={color} />;
             },
-            tabBarActiveTintColor: 'tomato',
+            tabBarActiveTintColor: '#E54B4B',
             tabBarInactiveTintColor: 'gray',
+            tabBarStyle: { height: 60, paddingBottom: 10, paddingTop: 5 }
         })}
     >
         <Tab.Screen name="Home" component={HomeStack} />
-        <Tab.Screen name="Cart" component={CartStack} />
+        <Tab.Screen name="Cart" component={CartScreen} />
         <Tab.Screen name="Orders" component={OrderHistoryScreen} options={{ headerShown: true, title: 'Historique' }} />
+        <Tab.Screen name="Profile" component={ProfileScreen} />
     </Tab.Navigator>
 );
 
 const AuthStack = () => (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="Welcome" component={WelcomeScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Register" component={RegisterScreen} />
     </Stack.Navigator>
@@ -65,7 +66,6 @@ export const AppNavigator = () => {
     const { userToken, isLoading } = useContext(AuthContext);
 
     if (isLoading) {
-        // You can return a Loading Spinner here
         return null;
     }
 
@@ -74,6 +74,7 @@ export const AppNavigator = () => {
             {userToken ? (
                 <Stack.Navigator screenOptions={{ headerShown: false }}>
                     <Stack.Screen name="MainTabs" component={AppTabs} />
+                    <Stack.Screen name="VIPSupport" component={VIPSupportScreen} />
                     <Stack.Screen
                         name="OrderTracking"
                         component={OrderTrackingScreen}

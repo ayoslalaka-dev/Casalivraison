@@ -3,62 +3,73 @@ const { Order, OrderItem, Menu, DeliveryDriver, User, Restaurant } = require('..
 
 class OrderService {
     async createOrder(userId, items) {
-        let totalPrice = 0;
-        const orderItemsData = [];
+        const t = await Order.sequelize.transaction();
+        try {
+            let totalPrice = 0;
+            const orderItemsData = [];
 
-        // 1. Calcul du prix total et vérification des menus
-        for (const item of items) {
-            const menu = await Menu.findByPk(item.menuId);
-            if (!menu) {
-                const error = new Error(`Menu item ${item.menuId} not found`);
-                error.statusCode = 404;
-                throw error;
+            // 1. Calcul du prix total et vérification des menus
+            for (const item of items) {
+                const menu = await Menu.findByPk(item.menuId, { transaction: t });
+                if (!menu) {
+                    const error = new Error(`Menu item ${item.menuId} not found`);
+                    error.statusCode = 404;
+                    throw error;
+                }
+
+                const itemTotal = parseFloat(menu.price) * item.quantity;
+                totalPrice += itemTotal;
+
+                orderItemsData.push({
+                    menuId: item.menuId,
+                    quantity: item.quantity,
+                    price: menu.price
+                });
             }
 
-            const itemTotal = parseFloat(menu.price) * item.quantity;
-            totalPrice += itemTotal;
+            // Frais de livraison fixes
+            const deliveryFee = 20.00;
+            totalPrice += deliveryFee;
 
-            orderItemsData.push({
-                menuId: item.menuId,
-                quantity: item.quantity,
-                price: menu.price
+            // 2. Attribution aléatoire d'un livreur disponible
+            const availableDrivers = await DeliveryDriver.findAll({
+                where: { status: 'AVAILABLE' },
+                transaction: t
             });
+
+            let assignedDriverId = null;
+            if (availableDrivers.length > 0) {
+                const randomIndex = Math.floor(Math.random() * availableDrivers.length);
+                assignedDriverId = availableDrivers[randomIndex].id;
+            }
+
+            // 3. Création de la commande
+            const order = await Order.create({
+                userId,
+                totalPrice,
+                deliveryFee,
+                status: 'PENDING',
+                deliveryDriverId: assignedDriverId
+            }, { transaction: t });
+
+            for (const itemData of orderItemsData) {
+                await OrderItem.create({ ...itemData, orderId: order.id }, { transaction: t });
+            }
+
+            // Mise à jour du statut du livreur si assigné
+            if (assignedDriverId) {
+                await DeliveryDriver.update({ status: 'BUSY' }, {
+                    where: { id: assignedDriverId },
+                    transaction: t
+                });
+            }
+
+            await t.commit();
+            return order;
+        } catch (error) {
+            await t.rollback();
+            throw error;
         }
-
-        // Frais de livraison fixes
-        const deliveryFee = 20.00;
-        totalPrice += deliveryFee;
-
-        // 2. Attribution aléatoire d'un livreur disponible
-        const availableDrivers = await DeliveryDriver.findAll({
-            where: { status: 'AVAILABLE' }
-        });
-
-        let assignedDriverId = null;
-        if (availableDrivers.length > 0) {
-            const randomIndex = Math.floor(Math.random() * availableDrivers.length);
-            assignedDriverId = availableDrivers[randomIndex].id;
-        }
-
-        // 3. Création de la commande
-        const order = await Order.create({
-            userId,
-            totalPrice,
-            deliveryFee,
-            status: 'PENDING',
-            deliveryDriverId: assignedDriverId
-        });
-
-        for (const itemData of orderItemsData) {
-            await OrderItem.create({ ...itemData, orderId: order.id });
-        }
-
-        // Mise à jour du statut du livreur si assigné (optionnel mais logique)
-        if (assignedDriverId) {
-            await DeliveryDriver.update({ status: 'BUSY' }, { where: { id: assignedDriverId } });
-        }
-
-        return order;
     }
 
     async getOrderById(id) {
@@ -98,26 +109,36 @@ class OrderService {
     }
 
     async updateOrderStatus(orderId, status, driverId = null) {
-        const order = await Order.findByPk(orderId);
-        if (!order) {
-            const error = new Error('Order not found');
-            error.statusCode = 404;
+        const t = await Order.sequelize.transaction();
+        try {
+            const order = await Order.findByPk(orderId, { transaction: t });
+            if (!order) {
+                const error = new Error('Order not found');
+                error.statusCode = 404;
+                throw error;
+            }
+
+            const updateData = { status };
+            if (driverId) {
+                updateData.deliveryDriverId = driverId;
+            }
+
+            await order.update(updateData, { transaction: t });
+
+            // Si la commande est livrée ou annulée, libérer le livreur
+            if ((status === 'DELIVERED' || status === 'CANCELLED') && order.deliveryDriverId) {
+                await DeliveryDriver.update({ status: 'AVAILABLE' }, {
+                    where: { id: order.deliveryDriverId },
+                    transaction: t
+                });
+            }
+
+            await t.commit();
+            return order;
+        } catch (error) {
+            await t.rollback();
             throw error;
         }
-
-        const updateData = { status };
-        if (driverId) {
-            updateData.deliveryDriverId = driverId;
-        }
-
-        await order.update(updateData);
-
-        // Si la commande est livrée ou annulée, libérer le livreur
-        if ((status === 'DELIVERED' || status === 'CANCELLED') && order.deliveryDriverId) {
-            await DeliveryDriver.update({ status: 'AVAILABLE' }, { where: { id: order.deliveryDriverId } });
-        }
-
-        return order;
     }
 }
 
