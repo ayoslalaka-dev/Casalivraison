@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect } from 'react';
 import * as SecureStore from 'expo-secure-store';
-import api from '../services/api';
+import authService from '../services/auth.service';
 
 export const AuthContext = createContext();
 
@@ -12,7 +12,7 @@ export const AuthProvider = ({ children }) => {
     const login = async (email, password) => {
         setIsLoading(true);
         try {
-            const response = await api.post('/auth/login', { email, password });
+            const response = await authService.login(email, password);
             const { token, user } = response.data;
             setUserInfo(user);
             setUserToken(token);
@@ -53,7 +53,7 @@ export const AuthProvider = ({ children }) => {
     const register = async (name, email, password, address) => {
         setIsLoading(true);
         try {
-            await api.post('/auth/register', { name, email, password, address });
+            await authService.register({ name, email, password, address });
             // Auto login logic could be added here
         } catch (e) {
             console.log(`Register error ${e}`);

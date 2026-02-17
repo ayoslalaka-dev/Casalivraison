@@ -3,7 +3,7 @@ import * as SecureStore from 'expo-secure-store';
 
 // Remplace localhost par ton IP locale si tu testes sur un device physique (ex: 192.168.1.XX)
 // Pour l'émulateur Android standard: 10.0.2.2
-const API_URL = 'http://192.168.100.6:3000/api/v1'; // Local IP for physical device testing
+const API_URL = 'http://localhost:5001/api/v1'; // Standardized to backend port 5001
 
 const instance = axios.create({
     baseURL: API_URL,

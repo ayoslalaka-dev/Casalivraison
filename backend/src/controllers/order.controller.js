@@ -1,7 +1,6 @@
-// backend/src/controllers/orderController.js
-const orderService = require('../services/orderService');
+import orderService from '../services/order.service.js';
 
-exports.createOrder = async (req, res, next) => {
+const createOrder = async (req, res, next) => {
     try {
         const { userId, items } = req.body;
         const order = await orderService.createOrder(userId, items);
@@ -11,7 +10,7 @@ exports.createOrder = async (req, res, next) => {
     }
 };
 
-exports.getOrderById = async (req, res, next) => {
+const getOrderById = async (req, res, next) => {
     try {
         const order = await orderService.getOrderById(req.params.id);
         res.json({ success: true, data: order });
@@ -20,9 +19,8 @@ exports.getOrderById = async (req, res, next) => {
     }
 };
 
-exports.getUserOrders = async (req, res, next) => {
+const getUserOrders = async (req, res, next) => {
     try {
-        // Support both query and params for userId as per request requirements
         const userId = req.params.userId || req.query.userId;
         if (!userId) {
             return res.status(400).json({ success: false, message: 'UserId is required' });
@@ -34,7 +32,7 @@ exports.getUserOrders = async (req, res, next) => {
     }
 };
 
-exports.updateOrderStatus = async (req, res, next) => {
+const updateOrderStatus = async (req, res, next) => {
     try {
         const { id } = req.params;
         const { status, driverId } = req.body;
@@ -43,4 +41,11 @@ exports.updateOrderStatus = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
+};
+
+export default {
+    create: createOrder,
+    getOne: getOrderById,
+    getAll: getUserOrders,
+    updateStatus: updateOrderStatus
 };

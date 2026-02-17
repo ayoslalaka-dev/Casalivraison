@@ -3,19 +3,29 @@ ARBORESCENCE DU PROJET:
 .
 ├── backend
 │   ├── config
-│   │   └── database.js
+│   │   ├── database.js (TypeORM DataSource)
+│   │   └── env.js
 │   ├── src
 │   │   ├── controllers
 │   │   │   ├── authController.js
 │   │   │   ├── orderController.js
 │   │   │   └── restaurantController.js
+│   │   ├── entities (TypeORM)
+│   │   │   ├── User.js
+│   │   │   ├── Category.js
+│   │   │   ├── Restaurant.js
+│   │   │   ├── Menu.js
+│   │   │   ├── Order.js
+│   │   │   ├── OrderItem.js
+│   │   │   └── DeliveryDriver.js
 │   │   ├── middlewares
 │   │   │   ├── errorHandler.js
-│   │   │   └── notFound.js
-│   │   ├── models
-│   │   │   ├── index.js
-│   │   │   ├── user.js
-│   │   │   └── ...
+│   │   │   ├── notFound.js
+│   │   │   ├── authenticate.js
+│   │   │   ├── authorize.js
+│   │   │   ├── asyncHandler.js
+│   │   │   ├── rateLimiter.js
+│   │   │   └── index.js
 │   │   ├── routes
 │   │   │   ├── index.js
 │   │   │   ├── auth.js
@@ -33,13 +43,12 @@ ARBORESCENCE DU PROJET:
 */
 
 // backend/src/server.js
-const dotenv = require('dotenv');
-const { sequelize } = require('./models');
-const app = require('./app');
+import 'reflect-metadata';
+import { AppDataSource } from './config/database.js';
+import { env } from './config/env.js';
+import app from './app.js';
 
-dotenv.config();
-
-const PORT = process.env.PORT || 3000;
+const PORT = env.PORT;
 
 const startServer = async () => {
     let connected = false;
@@ -49,30 +58,42 @@ const startServer = async () => {
     while (!connected && attempts < maxAttempts) {
         try {
             attempts++;
-            await sequelize.authenticate();
-            console.log('Database connected successfully.');
+
+            // Initialize TypeORM DataSource
+            await AppDataSource.initialize();
+            console.log('✅ Database connected successfully (TypeORM)');
             connected = true;
 
-            // Sync models - En dev seulement. En prod, utiliser les migrations.
-            if (process.env.NODE_ENV === 'development') {
-                await sequelize.sync();
-                console.log('Database synced.');
-            }
-
+            // Start server
             app.listen(PORT, () => {
-                console.log(`Server running on port ${PORT}`);
+                console.log(`🚀 Server running on port ${PORT}`);
+                console.log(`📊 Environment: ${env.NODE_ENV}`);
             });
+
         } catch (error) {
-            console.error(`Database connection attempt ${attempts} failed:`, error.message);
+            console.error(`❌ Database connection attempt ${attempts} failed:`, error);
             if (attempts < maxAttempts) {
-                console.log('Retrying in 5 seconds...');
+                console.log('⏳ Retrying in 5 seconds...');
                 await new Promise(resolve => setTimeout(resolve, 5000));
             } else {
-                console.error('Max connection attempts reached. Exiting.');
+                console.error('💥 Max connection attempts reached. Exiting.');
                 process.exit(1);
             }
         }
     }
 };
+
+// Graceful shutdown
+process.on('SIGTERM', async () => {
+    console.log('⚠️  SIGTERM received, closing database connection...');
+    await AppDataSource.destroy();
+    process.exit(0);
+});
+
+process.on('SIGINT', async () => {
+    console.log('⚠️  SIGINT received, closing database connection...');
+    await AppDataSource.destroy();
+    process.exit(0);
+});
 
 startServer();

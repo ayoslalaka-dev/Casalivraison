@@ -11,18 +11,20 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import api from '../services/api';
+import orderService from '../services/order.service';
 import { AuthContext } from '../context/AuthContext';
 
 const OrderHistoryScreen = ({ navigation }) => {
     const [orders, setOrders] = useState([]);
     const { userInfo } = useContext(AuthContext);
     const [refreshing, setRefreshing] = useState(false);
+    const [isLoading, setIsLoading] = useState(false); // Added isLoading state
 
     const fetchOrders = async () => {
         try {
+            setIsLoading(true); // Set loading to true
             if (userInfo?.id) {
-                const response = await api.orders.getAll(userInfo.id);
+                const response = await orderService.getAll(userInfo.id); // Changed api.orders to orderService
                 setOrders(response.data.data || response.data);
             } else {
                 // Mock data for demo if not logged in

@@ -1,7 +1,6 @@
-// backend/src/controllers/restaurantController.js
-const restaurantService = require('../services/restaurantService');
+import restaurantService from '../services/restaurant.service.js';
 
-exports.getAllRestaurants = async (req, res, next) => {
+const getAllRestaurants = async (req, res, next) => {
     try {
         const restaurants = await restaurantService.getAllRestaurants(req.query);
         res.json({ success: true, data: restaurants });
@@ -10,7 +9,7 @@ exports.getAllRestaurants = async (req, res, next) => {
     }
 };
 
-exports.getRestaurantMenu = async (req, res, next) => {
+const getRestaurantDetails = async (req, res, next) => {
     try {
         const restaurant = await restaurantService.getRestaurantDetails(req.params.id);
         res.json({ success: true, data: restaurant });
@@ -19,7 +18,7 @@ exports.getRestaurantMenu = async (req, res, next) => {
     }
 };
 
-exports.getMenusByRestaurant = async (req, res, next) => {
+const getMenusByRestaurant = async (req, res, next) => {
     try {
         const { restaurantId } = req.params;
         const menus = await restaurantService.getMenusByRestaurantId(restaurantId);
@@ -29,7 +28,7 @@ exports.getMenusByRestaurant = async (req, res, next) => {
     }
 };
 
-exports.createRestaurant = async (req, res, next) => {
+const createRestaurant = async (req, res, next) => {
     try {
         const restaurant = await restaurantService.createRestaurant(req.body);
         res.status(201).json({ success: true, data: restaurant });
@@ -38,11 +37,19 @@ exports.createRestaurant = async (req, res, next) => {
     }
 };
 
-exports.addMenu = async (req, res, next) => {
+const addMenu = async (req, res, next) => {
     try {
         const menu = await restaurantService.addMenu(req.params.id, req.body);
         res.status(201).json({ success: true, data: menu });
     } catch (error) {
         next(error);
     }
+};
+
+export default {
+    getAll: getAllRestaurants,
+    getOne: getRestaurantDetails,
+    getMenus: getMenusByRestaurant,
+    create: createRestaurant,
+    addMenu
 };

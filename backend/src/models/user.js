@@ -1,7 +1,6 @@
-// backend/src/models/user.js
-const { Model, DataTypes } = require('sequelize');
+import { Model, DataTypes } from 'sequelize';
 
-module.exports = (sequelize) => {
+export default (sequelize) => {
     class User extends Model {
         static associate(models) {
             User.hasMany(models.Order, { foreignKey: 'userId', as: 'orders' });

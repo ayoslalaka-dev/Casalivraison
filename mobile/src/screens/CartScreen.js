@@ -15,7 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { CartContext } from '../context/CartContext';
 import { AuthContext } from '../context/AuthContext';
-import api from '../services/api';
+import api from '../services/api.service';
 
 const { width } = Dimensions.get('window');
 

@@ -1,7 +1,6 @@
-// backend/src/models/order.js
-const { Model, DataTypes } = require('sequelize');
+import { Model, DataTypes } from 'sequelize';
 
-module.exports = (sequelize) => {
+export default (sequelize) => {
     class Order extends Model {
         static associate(models) {
             Order.belongsTo(models.User, { foreignKey: 'userId', as: 'user' });
@@ -11,17 +10,17 @@ module.exports = (sequelize) => {
     }
 
     Order.init({
-        status: {
-            type: DataTypes.ENUM('PENDING', 'VALIDATED', 'IN_DELIVERY', 'DELIVERED', 'CANCELLED'),
-            defaultValue: 'PENDING'
-        },
         totalPrice: {
             type: DataTypes.DECIMAL(10, 2),
             allowNull: false
         },
         deliveryFee: {
             type: DataTypes.DECIMAL(10, 2),
-            defaultValue: 20.00
+            defaultValue: 15.00
+        },
+        status: {
+            type: DataTypes.ENUM('PENDING', 'VALIDATED', 'IN_DELIVERY', 'DELIVERED', 'CANCELLED'),
+            defaultValue: 'PENDING'
         },
         userId: {
             type: DataTypes.INTEGER,
@@ -29,7 +28,7 @@ module.exports = (sequelize) => {
         },
         deliveryDriverId: {
             type: DataTypes.INTEGER,
-            allowNull: true // Peut être null si pas encore assigné
+            allowNull: true
         }
     }, {
         sequelize,

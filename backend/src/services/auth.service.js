@@ -1,7 +1,8 @@
-// backend/src/services/authService.js
-const { User } = require('../models');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
+import models from '../models/index.js';
+const { User } = models;
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import { env } from '../config/env.js';
 
 class AuthService {
     async register({ name, email, password, address }) {
@@ -29,9 +30,9 @@ class AuthService {
             error.statusCode = 401;
             throw error;
         }
-        const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET || 'secret_key', { expiresIn: '1h' });
-        return { token, user: { id: user.id, name: user.name, email: user.email } };
+        const token = jwt.sign({ userId: user.id }, env.JWT_SECRET, { expiresIn: env.JWT_ACCESS_EXPIRES_IN || '1h' });
+        return { token, user: { id: user.id, name: user.name, email: user.email, role: user.role } };
     }
 }
 
-module.exports = new AuthService();
+export default new AuthService();

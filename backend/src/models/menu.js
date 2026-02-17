@@ -1,6 +1,6 @@
-const { Model, DataTypes } = require('sequelize');
+import { Model, DataTypes } from 'sequelize';
 
-module.exports = (sequelize) => {
+export default (sequelize) => {
     class Menu extends Model {
         static associate(models) {
             Menu.belongsTo(models.Restaurant, { foreignKey: 'restaurantId', as: 'restaurant' });

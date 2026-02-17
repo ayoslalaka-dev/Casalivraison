@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import api from '../services/api';
+import restaurantService from '../services/restaurant.service';
 import RestaurantCard from '../components/RestaurantCard';
 
 const CATEGORIES = [
@@ -30,7 +30,8 @@ const RestaurantListScreen = ({ navigation }) => {
     useEffect(() => {
         const fetchRestaurants = async () => {
             try {
-                const response = await api.restaurants.getAll();
+                setLoading(true);
+                const response = await restaurantService.getAll();
                 setRestaurants(response.data.data);
             } catch (e) {
                 console.error('Error fetching restaurants:', e);

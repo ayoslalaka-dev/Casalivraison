@@ -1,7 +1,6 @@
-// backend/src/models/deliveryDriver.js
-const { Model, DataTypes } = require('sequelize');
+import { Model, DataTypes } from 'sequelize';
 
-module.exports = (sequelize) => {
+export default (sequelize) => {
     class DeliveryDriver extends Model {
         static associate(models) {
             DeliveryDriver.hasMany(models.Order, { foreignKey: 'deliveryDriverId', as: 'orders' });
@@ -15,7 +14,12 @@ module.exports = (sequelize) => {
         },
         phone: {
             type: DataTypes.STRING,
-            allowNull: false
+            allowNull: false,
+            unique: true
+        },
+        vehicleType: {
+            type: DataTypes.STRING,
+            allowNull: true
         },
         status: {
             type: DataTypes.ENUM('AVAILABLE', 'BUSY', 'OFFLINE'),

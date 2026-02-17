@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import api from '../services/api';
+import restaurantService from '../services/restaurant.service';
 import { CartContext } from '../context/CartContext';
 
 const { width } = Dimensions.get('window');
@@ -36,8 +36,11 @@ const RestaurantDetailScreen = ({ route, navigation }) => {
     useEffect(() => {
         const fetchDetails = async () => {
             try {
-                const response = await api.restaurants.getOne(id);
-                setRestaurant(response.data.data);
+                setLoading(true);
+                const [detailsRes, menusRes] = await Promise.all([
+                    restaurantService.getOne(id),
+                    restaurantService.getMenus(id)
+                ]);
             } catch (e) {
                 console.error(e);
             } finally {

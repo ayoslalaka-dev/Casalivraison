@@ -1,6 +1,6 @@
 // mobile/src/context/OrderContext.js
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import api from '../services/api';
+import orderService from '../services/order.service';
 import { AuthContext } from './AuthContext';
 
 export const OrderContext = createContext();
@@ -15,9 +15,9 @@ export const OrderProvider = ({ children }) => {
         if (!userInfo) return;
         setIsLoading(true);
         try {
-            const response = await api.get(`/orders/user/${userInfo.id}`);
+            const response = await orderService.getAll(userInfo.id);
             // API returns { success: true, data: [...] }
-            setOrders(response.data.data);
+            setOrders(response.data.data || response.data);
         } catch (error) {
             console.error('Error fetching orders:', error);
         } finally {
@@ -31,8 +31,8 @@ export const OrderProvider = ({ children }) => {
 
     const getOrderById = async (id) => {
         try {
-            const response = await api.get(`/orders/${id}`);
-            return response.data.data;
+            const response = await orderService.getOne(id);
+            return response.data.data || response.data;
         } catch (error) {
             console.error('Error getting order:', error);
             return null;

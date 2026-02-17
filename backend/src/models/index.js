@@ -1,21 +1,24 @@
-const fs = require('fs');
-const path = require('path');
-const Sequelize = require('sequelize');
-const process = require('process');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import Sequelize from 'sequelize';
+import { env as configEnv } from '../config/env.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const basename = path.basename(__filename);
-const env = process.env.NODE_ENV || 'development';
-const config = require('../../config/database.js')[env];
+
 const db = {};
 
-let sequelize;
-if (config.use_env_variable) {
-    sequelize = new Sequelize(process.env[config.use_env_variable], config);
-} else {
-    sequelize = new Sequelize(config.database, config.username, config.password, config);
-}
+// On utilise directement l'objet env importé
+const sequelize = new Sequelize(configEnv.DB_NAME, configEnv.DB_USER, configEnv.DB_PASSWORD, {
+    host: configEnv.DB_HOST,
+    port: configEnv.DB_PORT,
+    dialect: 'postgres',
+    logging: configEnv.NODE_ENV === 'development',
+});
 
-fs
-    .readdirSync(__dirname)
+const files = fs.readdirSync(__dirname)
     .filter(file => {
         return (
             file.indexOf('.') !== 0 &&
@@ -23,11 +26,16 @@ fs
             file.slice(-3) === '.js' &&
             file.indexOf('.test.js') === -1
         );
-    })
-    .forEach(file => {
-        const model = require(path.join(__dirname, file))(sequelize, Sequelize.DataTypes);
-        db[model.name] = model;
     });
+
+import { pathToFileURL } from 'url';
+
+for (const file of files) {
+    const modelPath = path.join(__dirname, file);
+    const modelModule = await import(pathToFileURL(modelPath).href);
+    const model = modelModule.default(sequelize, Sequelize.DataTypes);
+    db[model.name] = model;
+}
 
 Object.keys(db).forEach(modelName => {
     if (db[modelName].associate) {
@@ -38,4 +46,5 @@ Object.keys(db).forEach(modelName => {
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
 
-module.exports = db;
+export { sequelize, Sequelize };
+export default db;

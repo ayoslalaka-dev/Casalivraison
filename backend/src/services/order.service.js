@@ -1,9 +1,9 @@
-// backend/src/services/orderService.js
-const { Order, OrderItem, Menu, DeliveryDriver, User, Restaurant } = require('../models');
+import models from '../models/index.js';
+const { Order, OrderItem, Menu, DeliveryDriver, User, Restaurant } = models;
 
 class OrderService {
     async createOrder(userId, items) {
-        const t = await Order.sequelize.transaction();
+        const t = await models.sequelize.transaction();
         try {
             let totalPrice = 0;
             const orderItemsData = [];
@@ -109,7 +109,7 @@ class OrderService {
     }
 
     async updateOrderStatus(orderId, status, driverId = null) {
-        const t = await Order.sequelize.transaction();
+        const t = await models.sequelize.transaction();
         try {
             const order = await Order.findByPk(orderId, { transaction: t });
             if (!order) {
@@ -142,4 +142,4 @@ class OrderService {
     }
 }
 
-module.exports = new OrderService();
+export default new OrderService();

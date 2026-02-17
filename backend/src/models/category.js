@@ -1,7 +1,6 @@
-// backend/src/models/category.js
-const { Model, DataTypes } = require('sequelize');
+import { Model, DataTypes } from 'sequelize';
 
-module.exports = (sequelize) => {
+export default (sequelize) => {
     class Category extends Model {
         static associate(models) {
             Category.hasMany(models.Restaurant, { foreignKey: 'categoryId', as: 'restaurants' });

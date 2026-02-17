@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import api from '../services/api';
+import orderService from '../services/order.service';
 
 const { width, height } = Dimensions.get('window');
 
@@ -22,8 +22,8 @@ const OrderTrackingScreen = ({ route, navigation }) => {
 
     const fetchOrder = async () => {
         try {
-            if (route.params?.orderId) {
-                const response = await api.orders.getOne(orderId);
+            if (orderId) { // Ensure orderId exists before fetching
+                const response = await orderService.getOne(orderId);
                 setOrder(response.data.data);
             } else {
                 // Mock order for demo if no ID

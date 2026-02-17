@@ -1,5 +1,5 @@
-// backend/src/services/restaurantService.js
-const { Restaurant, Menu, Category } = require('../models');
+import models from '../models/index.js';
+const { Restaurant, Menu, Category } = models;
 
 class RestaurantService {
     async getAllRestaurants({ zone }) {
@@ -52,4 +52,4 @@ class RestaurantService {
     }
 }
 
-module.exports = new RestaurantService();
+export default new RestaurantService();
