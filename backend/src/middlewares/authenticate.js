@@ -1,89 +1,62 @@
-/**
- * Authentication Middleware
- * Verifies JWT token and attaches user to request
- */
+import jwt from 'jsonwebtoken';
+import { env } from '../config/env.js';
+import { AppDataSource } from '../config/database.js';
+import { User } from '../entities/User.js';
 
-const jwt = require('jsonwebtoken');
-const { User } = require('../models');
-
-/**
- * Middleware to verify JWT token
- * Adds user object to req.user if token is valid
- */
-const authenticate = async (req, res, next) => {
+export const authenticate = async (req, res, next) => {
     try {
-        // Get token from header
         const authHeader = req.headers.authorization;
 
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
             return res.status(401).json({
+                status: 'error',
                 success: false,
-                error: 'Accès non autorisé. Token manquant.'
+                message: 'No token provided'
             });
         }
 
-        // Extract token
-        const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+        const token = authHeader.split(' ')[1];
+        const decoded = jwt.verify(token, env.JWT_SECRET);
 
-        // Verify token
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-        // Get user from database
-        const user = await User.findByPk(decoded.userId, {
-            attributes: { exclude: ['password'] } // Don't include password
+        const userRepository = AppDataSource.getRepository(User);
+        const user = await userRepository.findOne({
+            where: { id: decoded.userId },
+            select: ['id', 'name', 'email', 'role', 'address', 'phone']
         });
 
         if (!user) {
             return res.status(401).json({
+                status: 'error',
                 success: false,
-                error: 'Utilisateur non trouvé.'
+                message: 'User not found'
             });
         }
 
-        // Attach user to request
         req.user = user;
         next();
-
     } catch (error) {
-        if (error.name === 'JsonWebTokenError') {
-            return res.status(401).json({
-                success: false,
-                error: 'Token invalide.'
-            });
-        }
-
-        if (error.name === 'TokenExpiredError') {
-            return res.status(401).json({
-                success: false,
-                error: 'Token expiré.'
-            });
-        }
-
-        return res.status(500).json({
+        console.error('Auth Middleware Error:', error.message);
+        return res.status(401).json({
+            status: 'error',
             success: false,
-            error: 'Erreur lors de la vérification du token.'
+            message: error.name === 'TokenExpiredError' ? 'Token expired' : 'Invalid token'
         });
     }
 };
 
-/**
- * Optional authentication middleware
- * Attaches user if token is present, but doesn't fail if missing
- */
-const optionalAuth = async (req, res, next) => {
+export const optionalAuth = async (req, res, next) => {
     try {
         const authHeader = req.headers.authorization;
 
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            return next(); // Continue without user
+            return next();
         }
 
-        const token = authHeader.substring(7);
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const token = authHeader.split(' ')[1];
+        const decoded = jwt.verify(token, env.JWT_SECRET);
 
-        const user = await User.findByPk(decoded.userId, {
-            attributes: { exclude: ['password'] }
-        });
+        const userRepository = AppDataSource.getRepository(User);
+        const user = await userRepository.findOne({ where: { id: decoded.userId } });
 
         if (user) {
             req.user = user;
@@ -91,12 +64,6 @@ const optionalAuth = async (req, res, next) => {
 
         next();
     } catch (error) {
-        // Ignore errors and continue without user
         next();
     }
-};
-
-module.exports = {
-    authenticate,
-    optionalAuth
 };

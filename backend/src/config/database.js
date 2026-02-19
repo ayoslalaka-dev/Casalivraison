@@ -22,3 +22,4 @@ export const AppDataSource = new DataSource({
     // migrations: ['src/migrations/*.js'], // Legacy Sequelize migrations conflict with TypeORM ESM
     subscribers: [],
 });
+console.log("log ,env",env.DB_USER)
