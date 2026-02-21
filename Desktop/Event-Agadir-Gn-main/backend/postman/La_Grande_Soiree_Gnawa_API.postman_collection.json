@@ -1,0 +1,383 @@
+{
+  "info": {
+    "name": "La Grande Soirée Gnawa API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Event & Artistes (Publiques)",
+      "item": [
+        {
+          "name": "Get Event Info",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/event",
+              "host": ["{{base_url}}"],
+              "path": ["event"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('Response is an object', function () { pm.expect(typeof json).to.eql('object'); });",
+                  "pm.test('Contains title or name', function () { pm.expect(!!(json.title || json.name)).to.be.true; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List All Artists",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/artists",
+              "host": ["{{base_url}}"],
+              "path": ["artists"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('Response is an array', function () { pm.expect(Array.isArray(json)).to.be.true; });",
+                  "pm.test('Non-empty list if seeded', function () { pm.expect(json.length).to.be.at.least(0); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Artist Detail",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/artists/1",
+              "host": ["{{base_url}}"],
+              "path": ["artists", "1"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('Contains id and bio', function () { pm.expect(json).to.have.property('id'); pm.expect(json).to.have.property('bio'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Artist Detail (404)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/artists/999",
+              "host": ["{{base_url}}"],
+              "path": ["artists", "999"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": ["pm.test('Status 404', function () { pm.response.to.have.status(404); });"]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Réservations (Publiques)",
+      "item": [
+        {
+          "name": "Create Booking",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Jean Test\",\n  \"email\": \"{{booking_email}}\",\n  \"tickets\": 2\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/bookings",
+              "host": ["{{base_url}}"],
+              "path": ["bookings"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', function () { pm.response.to.have.status(201); });",
+                  "const json = pm.response.json();",
+                  "if (json && json.confirmation_code) { pm.environment.set('booking_code', json.confirmation_code); }",
+                  "if (json && json.email) { pm.environment.set('booking_email', json.email); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Booking (Invalid Data)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"\",\n  \"email\": \"invalid\",\n  \"tickets\": 0\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/bookings",
+              "host": ["{{base_url}}"],
+              "path": ["bookings"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": ["pm.test('Status 400', function () { pm.response.to.have.status(400); });"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Booking by Code",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/bookings/{{booking_code}}",
+              "host": ["{{base_url}}"],
+              "path": ["bookings", "{{booking_code}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('Booking contains confirmation_code', function(){ pm.expect(json).to.have.property('confirmation_code'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Bookings by Email",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/bookings/email/{{booking_email}}",
+              "host": ["{{base_url}}"],
+              "path": ["bookings", "email", "{{booking_email}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('Response is an array', function () { pm.expect(Array.isArray(json)).to.be.true; });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Administration & Sécurité (Protégées)",
+      "item": [
+        {
+          "name": "Login Admin",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{admin_email}}\",\n  \"password\": \"{{admin_password}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.environment.set('jwt_token', json.token || '');",
+                  "pm.test('Token stored', function(){ pm.expect(pm.environment.get('jwt_token')).to.not.eql(''); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Artist (Protected)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{jwt_token}}", "type": "string" }]
+            },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Nouvel Maâlem\",\n  \"genre\": \"Gnawa\",\n  \"bio\": \"Bio initiale\",\n  \"schedule_time\": \"Samedi 22:00\",\n  \"image_url\": \"https://example.com/new.jpg\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/artists",
+              "host": ["{{base_url}}"],
+              "path": ["artists"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', function () { pm.response.to.have.status(201); });",
+                  "const json = pm.response.json();",
+                  "pm.environment.set('new_artist_id', json.id);",
+                  "pm.test('new_artist_id stored', function(){ pm.expect(pm.environment.get('new_artist_id')).to.not.eql(''); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Artist (No Token → 401/403)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"SansToken\",\n  \"genre\": \"Gnawa\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/artists",
+              "host": ["{{base_url}}"],
+              "path": ["artists"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Unauthorized', function () { pm.expect([401,403]).to.include(pm.response.code); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Artist (Protected)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{jwt_token}}", "type": "string" }]
+            },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bio\": \"Biographie mise à jour\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/artists/{{new_artist_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["artists", "{{new_artist_id}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('Bio updated', function(){ pm.expect(json.bio).to.eql('Biographie mise à jour'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete Artist (Protected)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{jwt_token}}", "type": "string" }]
+            },
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/artists/{{new_artist_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["artists", "{{new_artist_id}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 204 or 200', function () { pm.expect([200,204]).to.include(pm.response.code); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Verify Deleted Artist (404)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/artists/{{new_artist_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["artists", "{{new_artist_id}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": ["pm.test('Status 404', function () { pm.response.to.have.status(404); });"]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+
