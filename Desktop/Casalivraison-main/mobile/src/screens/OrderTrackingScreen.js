@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import orderService from '../services/order.service';
 
 const { width, height } = Dimensions.get('window');
@@ -19,6 +20,19 @@ const OrderTrackingScreen = ({ route, navigation }) => {
     const { orderId } = route.params || { orderId: '882-VIP' };
     const [order, setOrder] = useState(null);
     const [loading, setLoading] = useState(true);
+
+    // Default Casablanca coordinates
+    const CASABLANCA_REGION = {
+        latitude: 33.5731,
+        longitude: -7.5898,
+        latitudeDelta: 0.05,
+        longitudeDelta: 0.05,
+    };
+
+    const DESTINATION_COORD = {
+        latitude: 33.5898,
+        longitude: -7.6038,
+    };
 
     const fetchOrder = async () => {
         try {
@@ -61,13 +75,24 @@ const OrderTrackingScreen = ({ route, navigation }) => {
 
     return (
         <View style={styles.container}>
-            {/* Map Background Placeholder */}
-            <Image
-                source={{ uri: 'https://images.unsplash.com/photo-1526649661456-89c7ed4d0018?q=80&w=2070&auto=format&fit=crop' }}
+            <MapView
+                provider={PROVIDER_GOOGLE}
                 style={styles.mapBackground}
-            />
+                initialRegion={CASABLANCA_REGION}
+                showsUserLocation={true}
+            >
+                <Marker
+                    coordinate={DESTINATION_COORD}
+                    title="Destination"
+                    description={order.location || 'Casablanca'}
+                >
+                    <View style={styles.mapMarker}>
+                        <Ionicons name="location" size={24} color="#E54B4B" />
+                    </View>
+                </Marker>
+            </MapView>
 
-            <SafeAreaView style={styles.overlay}>
+            <SafeAreaView style={styles.overlay} pointerEvents="box-none">
                 <View style={styles.headerBar}>
                     <TouchableOpacity
                         style={styles.headerIcon}
@@ -152,7 +177,18 @@ const styles = StyleSheet.create({
         position: 'absolute',
         width: width,
         height: height,
-        opacity: 0.6,
+    },
+    mapMarker: {
+        backgroundColor: 'white',
+        borderRadius: 20,
+        padding: 5,
+        borderWidth: 2,
+        borderColor: '#E54B4B',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5,
     },
     overlay: {
         flex: 1,
