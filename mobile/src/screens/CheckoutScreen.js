@@ -28,17 +28,39 @@ const CheckoutScreen = ({ navigation }) => {
     const conciergeFee = subtotal * 0.05;
     const totalAmount = subtotal + deliveryFee + conciergeFee;
 
-    const handlePlaceOrder = () => {
-        Alert.alert(
-            'Order Placed',
-            'Your exclusive delivery is on its way.',
-            [{
-                text: 'Great', onPress: () => {
-                    clearCart();
-                    navigation.navigate('OrderTracking');
-                }
-            }]
-        );
+    const handlePlaceOrder = async () => {
+        try {
+            const payload = {
+                userId: 1, // Default guest user
+                items: items.map(item => ({
+                    menuId: item.menuId,
+                    quantity: item.quantity,
+                    price: item.price
+                }))
+            };
+
+            const response = await orderService.create(payload);
+
+            if (response.data.success) {
+                Alert.alert(
+                    'Order Placed',
+                    'Your exclusive delivery is on its way.',
+                    [{
+                        text: 'Great', onPress: () => {
+                            clearCart();
+                            navigation.navigate('OrderTracking', { orderId: response.data.data.id });
+                        }
+                    }]
+                );
+            }
+        } catch (error) {
+            console.error('Error placing order:', error);
+            Alert.alert(
+                'Order Error',
+                'We could not process your elite selection at this time.',
+                [{ text: 'Try Again' }]
+            );
+        }
     };
 
     return (
