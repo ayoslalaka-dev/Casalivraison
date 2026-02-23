@@ -6,11 +6,11 @@
 // API Configuration
 export const API_CONFIG = {
     // Change based on your environment
-    BASE_URL: 'http://localhost:5001/api/v1',
+    BASE_URL: 'http://localhost:3000/api/v1',
 
-    // For Android Emulator, use: http://10.0.2.2:5001/api/v1
-    // For iOS Simulator, use: http://localhost:5001/api/v1
-    // For Physical Device, use: http://YOUR_IP:5001/api/v1
+    // For Android Emulator, use: http://10.0.2.2:3000/api/v1
+    // For iOS Simulator, use: http://localhost:3000/api/v1
+    // For Physical Device, use: http://YOUR_IP:3000/api/v1
 
     TIMEOUT: 10000, // 10 seconds
 };
