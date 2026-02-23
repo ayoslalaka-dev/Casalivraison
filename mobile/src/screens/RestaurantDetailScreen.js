@@ -17,6 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import restaurantService from '../services/restaurant.service';
 import { CartContext } from '../context/CartContext';
+import { formatPrice } from '../utils/formatters';
 
 const { width } = Dimensions.get('window');
 
@@ -155,7 +156,7 @@ const RestaurantDetailScreen = ({ route, navigation }) => {
             <View style={styles.itemInfo}>
                 <View style={styles.itemNameRow}>
                     <Text style={styles.itemName}>{item.name}</Text>
-                    <Text style={styles.itemPrice}>${item.price.toFixed(2)}</Text>
+                    <Text style={styles.itemPrice}>{formatPrice(parseFloat(item.price))}</Text>
                 </View>
                 <Text style={styles.itemDescription} numberOfLines={2}>
                     {item.description || 'Locally sourced lamp marinated in 12 Moroccan spices, flame-grilled over holm oak charcoal.'}
@@ -223,7 +224,7 @@ const RestaurantDetailScreen = ({ route, navigation }) => {
                             <Text style={styles.cartActionLabel}>View Cart Summary</Text>
                         </View>
                         <View style={styles.cartPriceContainer}>
-                            <Text style={styles.cartTotalAmount}>${cartTotal.toFixed(2)}</Text>
+                            <Text style={styles.cartTotalAmount}>{formatPrice(cartTotal)}</Text>
                             <Text style={styles.cartTaxLabel}>+ Tax & Fees</Text>
                         </View>
                     </LinearGradient>

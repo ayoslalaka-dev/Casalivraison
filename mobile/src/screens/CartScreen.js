@@ -15,6 +15,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { CartContext } from '../context/CartContext';
 import api from '../services/api.service';
+import { formatPrice } from '../utils/formatters';
+import { APP_CONFIG } from '../constants/config';
 
 const { width } = Dimensions.get('window');
 
@@ -22,7 +24,7 @@ const CartScreen = ({ navigation }) => {
     const { items, total, clearCart, removeFromCart, addToCart } = useContext(CartContext);
     const [loading, setLoading] = useState(false);
 
-    const deliveryFee = 0; // FREE for VIP
+    const deliveryFee = APP_CONFIG.DELIVERY_FEE;
     const serviceFee = total * 0.05;
     const grandTotal = total + deliveryFee + serviceFee;
 
@@ -39,7 +41,7 @@ const CartScreen = ({ navigation }) => {
             />
             <View style={styles.itemInfo}>
                 <Text style={styles.itemName}>{item.name}</Text>
-                <Text style={styles.itemPrice}>${item.price.toFixed(2)}</Text>
+                <Text style={styles.itemPrice}>{formatPrice(parseFloat(item.price))}</Text>
                 <View style={styles.quantityRow}>
                     <TouchableOpacity
                         style={styles.qtyBtn}
@@ -105,20 +107,22 @@ const CartScreen = ({ navigation }) => {
                         <View style={styles.summaryCard}>
                             <View style={styles.summaryRow}>
                                 <Text style={styles.summaryLabel}>Subtotal</Text>
-                                <Text style={styles.summaryValue}>${total.toFixed(2)}</Text>
+                                <Text style={styles.summaryValue}>{formatPrice(total)}</Text>
                             </View>
                             <View style={styles.summaryRow}>
-                                <Text style={styles.summaryLabel}>Express Delivery</Text>
-                                <Text style={[styles.summaryValue, { color: '#2E7D32' }]}>FREE</Text>
+                                <Text style={styles.summaryLabel}>Delivery Fee</Text>
+                                <Text style={[styles.summaryValue, deliveryFee === 0 ? { color: '#2E7D32' } : {}]}>
+                                    {deliveryFee === 0 ? 'FREE' : formatPrice(deliveryFee)}
+                                </Text>
                             </View>
                             <View style={styles.summaryRow}>
                                 <Text style={styles.summaryLabel}>Concierge Fee (5%)</Text>
-                                <Text style={styles.summaryValue}>${serviceFee.toFixed(2)}</Text>
+                                <Text style={styles.summaryValue}>{formatPrice(serviceFee)}</Text>
                             </View>
                             <View style={styles.divider} />
                             <View style={styles.totalRow}>
                                 <Text style={styles.totalLabel}>Grand Total</Text>
-                                <Text style={styles.totalValue}>${grandTotal.toFixed(2)}</Text>
+                                <Text style={styles.totalValue}>{formatPrice(grandTotal)}</Text>
                             </View>
                         </View>
 

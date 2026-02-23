@@ -12,6 +12,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import orderService from '../services/order.service';
+import { formatPrice } from '../utils/formatters';
 
 const OrderHistoryScreen = ({ navigation }) => {
     const [orders, setOrders] = useState([]);
@@ -61,10 +62,10 @@ const OrderHistoryScreen = ({ navigation }) => {
                     </View>
                     <View>
                         <Text style={styles.restaurantName}>{item.restaurantName || "Premium Dining"}</Text>
-                        <Text style={styles.orderDate}>{new Date(item.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</Text>
+                        <Text style={styles.orderDate}>{new Date(item.createdAt).toLocaleDateString('fr-FR', { month: 'short', day: 'numeric', year: 'numeric' })}</Text>
                     </View>
                 </View>
-                <Text style={styles.orderAmount}>${item.totalPrice.toFixed(2)}</Text>
+                <Text style={styles.orderAmount}>{formatPrice(parseFloat(item.totalPrice))}</Text>
             </View>
 
             <View style={styles.cardFooter}>

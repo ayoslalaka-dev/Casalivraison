@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import orderService from '../services/order.service';
+import { formatPrice } from '../utils/formatters';
 
 const { width, height } = Dimensions.get('window');
 
@@ -101,7 +102,7 @@ const OrderTrackingScreen = ({ route, navigation }) => {
                 <View style={styles.etaCard}>
                     <View style={styles.etaHeaderRow}>
                         <Text style={styles.etaLabel}>ESTIMATED ARRIVAL</Text>
-                        <Text style={styles.priceLabel}>{order.totalPrice ? order.totalPrice.toFixed(2) : order.totalAmount ? order.totalAmount.toFixed(2) : '---'} MAD</Text>
+                        <Text style={styles.priceLabel}>{formatPrice(parseFloat(order.totalPrice || order.totalAmount || 0))}</Text>
                     </View>
                     <View style={styles.etaRow}>
                         <Text style={styles.etaTime}>{order.eta || '12'}</Text>

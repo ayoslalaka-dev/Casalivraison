@@ -1,9 +1,8 @@
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
+import { API_CONFIG } from '../constants/config';
 
-// Remplace localhost par ton IP locale si tu testes sur un device physique (ex: 192.168.1.XX)
-// Pour l'émulateur Android standard: 10.0.2.2
-const API_URL = 'http://192.168.100.6:5001/api/v1'; // Standardized to backend port 5001
+const API_URL = API_CONFIG.BASE_URL;
 
 const instance = axios.create({
     baseURL: API_URL,
