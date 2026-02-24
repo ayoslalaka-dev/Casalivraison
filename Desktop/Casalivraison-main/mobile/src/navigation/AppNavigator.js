@@ -1,9 +1,8 @@
 // mobile/src/navigation/AppNavigator.js
-import React, { useContext } from 'react';
+import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { AuthContext } from '../context/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
 
 // Screens

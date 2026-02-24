@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     View,
     Text,
@@ -12,29 +12,22 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import orderService from '../services/order.service';
-import { AuthContext } from '../context/AuthContext';
+import { formatPrice } from '../utils/formatters';
 
 const OrderHistoryScreen = ({ navigation }) => {
     const [orders, setOrders] = useState([]);
-    const { userInfo } = useContext(AuthContext);
     const [refreshing, setRefreshing] = useState(false);
     const [isLoading, setIsLoading] = useState(false); // Added isLoading state
 
     const fetchOrders = async () => {
         try {
             setIsLoading(true); // Set loading to true
-            if (userInfo?.id) {
-                const response = await orderService.getAll(userInfo.id); // Changed api.orders to orderService
-                setOrders(response.data.data || response.data);
-            } else {
-                // Mock data for demo if not logged in
-                setOrders([
-                    { id: '882-VIP', createdAt: new Date().toISOString(), status: 'IN_DELIVERY', totalPrice: 245.50, restaurantName: "Le Maârif Grill" },
-                    { id: '841-VIP', createdAt: new Date(Date.now() - 86400000).toISOString(), status: 'DELIVERED', totalPrice: 180.00, restaurantName: "Artisan Sushi" },
-                ]);
-            }
+            const response = await orderService.getAll(1); // Guest user ID is 1
+            setOrders(response.data.data || response.data);
         } catch (e) {
             console.error(e);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -69,10 +62,10 @@ const OrderHistoryScreen = ({ navigation }) => {
                     </View>
                     <View>
                         <Text style={styles.restaurantName}>{item.restaurantName || "Premium Dining"}</Text>
-                        <Text style={styles.orderDate}>{new Date(item.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</Text>
+                        <Text style={styles.orderDate}>{new Date(item.createdAt).toLocaleDateString('fr-FR', { month: 'short', day: 'numeric', year: 'numeric' })}</Text>
                     </View>
                 </View>
-                <Text style={styles.orderAmount}>${item.totalPrice.toFixed(2)}</Text>
+                <Text style={styles.orderAmount}>{formatPrice(parseFloat(item.totalPrice))}</Text>
             </View>
 
             <View style={styles.cardFooter}>

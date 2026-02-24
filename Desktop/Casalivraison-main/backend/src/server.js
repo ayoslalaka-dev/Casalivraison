@@ -64,6 +64,23 @@ const startServer = async () => {
             console.log('✅ Database connected successfully (TypeORM)');
             connected = true;
 
+            // Seed guest user if auth is removed completely
+            const userRepository = AppDataSource.getRepository('User');
+            let guestUser = await userRepository.findOne({ where: { email: 'guest@casalivraison.ma' } });
+            if (!guestUser) {
+                guestUser = userRepository.create({
+                    name: 'Invité Casablanca',
+                    email: 'guest@casalivraison.ma',
+                    password: 'no-password-needed',
+                    phone: '0000000000',
+                    address: 'Casablanca',
+                    role: 'CLIENT'
+                });
+                await userRepository.save(guestUser);
+                console.log('🌱 Seeded default guest user');
+            }
+
+
             // Start server
             app.listen(PORT, () => {
                 console.log(`🚀 Server running on port ${PORT}`);

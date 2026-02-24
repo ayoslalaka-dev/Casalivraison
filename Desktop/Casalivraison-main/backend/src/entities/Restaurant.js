@@ -28,6 +28,21 @@ export const Restaurant = new EntitySchema({
             type: 'int',
             nullable: false
         },
+        phone: {
+            type: 'varchar',
+            length: 50,
+            nullable: true
+        },
+        rating: {
+            type: 'float',
+            default: 0
+        },
+        deliveryTime: {
+            type: 'varchar',
+            length: 100,
+            nullable: true
+        },
+
         createdAt: {
             type: 'timestamp',
             createDate: true

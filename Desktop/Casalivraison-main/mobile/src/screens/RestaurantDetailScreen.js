@@ -17,6 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import restaurantService from '../services/restaurant.service';
 import { CartContext } from '../context/CartContext';
+import { formatPrice } from '../utils/formatters';
 
 const { width } = Dimensions.get('window');
 
@@ -41,6 +42,22 @@ const RestaurantDetailScreen = ({ route, navigation }) => {
                     restaurantService.getOne(id),
                     restaurantService.getMenus(id)
                 ]);
+                if (detailsRes?.data?.data) {
+                    const restaurantData = detailsRes.data.data;
+                    restaurantData.menus = menusRes?.data?.data || [];
+                    setRestaurant(restaurantData);
+                } else {
+                    // Fallback mock data if API fails or returns empty
+                    setRestaurant({
+                        id,
+                        name: 'Le Maârif Grill',
+                        description: 'Specialty of the house',
+                        menus: [
+                            { id: 1, name: 'Signature Wagyu Ribeye', price: 120, isVip: true, imageUrl: 'https://images.unsplash.com/photo-1544025162-831afed7a6e1' },
+                            { id: 2, name: 'Truffle Mashed Potatoes', price: 25, isEcoFriendly: true, imageUrl: 'https://images.unsplash.com/photo-1512485800893-b08ec1ea59b1' }
+                        ]
+                    });
+                }
             } catch (e) {
                 console.error(e);
             } finally {
@@ -139,7 +156,7 @@ const RestaurantDetailScreen = ({ route, navigation }) => {
             <View style={styles.itemInfo}>
                 <View style={styles.itemNameRow}>
                     <Text style={styles.itemName}>{item.name}</Text>
-                    <Text style={styles.itemPrice}>${item.price.toFixed(2)}</Text>
+                    <Text style={styles.itemPrice}>{formatPrice(parseFloat(item.price))}</Text>
                 </View>
                 <Text style={styles.itemDescription} numberOfLines={2}>
                     {item.description || 'Locally sourced lamp marinated in 12 Moroccan spices, flame-grilled over holm oak charcoal.'}
@@ -207,7 +224,7 @@ const RestaurantDetailScreen = ({ route, navigation }) => {
                             <Text style={styles.cartActionLabel}>View Cart Summary</Text>
                         </View>
                         <View style={styles.cartPriceContainer}>
-                            <Text style={styles.cartTotalAmount}>${cartTotal.toFixed(2)}</Text>
+                            <Text style={styles.cartTotalAmount}>{formatPrice(cartTotal)}</Text>
                             <Text style={styles.cartTaxLabel}>+ Tax & Fees</Text>
                         </View>
                     </LinearGradient>

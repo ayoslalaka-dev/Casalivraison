@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import orderService from '../services/order.service';
+import { formatPrice } from '../utils/formatters';
 
 const { width, height } = Dimensions.get('window');
 
@@ -51,7 +52,8 @@ const OrderTrackingScreen = ({ route, navigation }) => {
                         avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=1974&auto=format&fit=crop'
                     },
                     eta: '12',
-                    location: 'Fifth Ave'
+                    location: 'Fifth Ave',
+                    totalPrice: 145.50
                 });
             }
         } catch (e) {
@@ -75,21 +77,13 @@ const OrderTrackingScreen = ({ route, navigation }) => {
 
     return (
         <View style={styles.container}>
+            {/* Real map using react-native-maps */}
             <MapView
                 provider={PROVIDER_GOOGLE}
                 style={styles.mapBackground}
                 initialRegion={CASABLANCA_REGION}
-                showsUserLocation={true}
             >
-                <Marker
-                    coordinate={DESTINATION_COORD}
-                    title="Destination"
-                    description={order.location || 'Casablanca'}
-                >
-                    <View style={styles.mapMarker}>
-                        <Ionicons name="location" size={24} color="#E54B4B" />
-                    </View>
-                </Marker>
+                <Marker coordinate={DESTINATION_COORD} />
             </MapView>
 
             <SafeAreaView style={styles.overlay} pointerEvents="box-none">
@@ -106,7 +100,10 @@ const OrderTrackingScreen = ({ route, navigation }) => {
                 </View>
 
                 <View style={styles.etaCard}>
-                    <Text style={styles.etaLabel}>ESTIMATED ARRIVAL</Text>
+                    <View style={styles.etaHeaderRow}>
+                        <Text style={styles.etaLabel}>ESTIMATED ARRIVAL</Text>
+                        <Text style={styles.priceLabel}>{formatPrice(parseFloat(order.totalPrice || order.totalAmount || 0))}</Text>
+                    </View>
                     <View style={styles.etaRow}>
                         <Text style={styles.etaTime}>{order.eta || '12'}</Text>
                         <Text style={styles.etaUnit}>mins</Text>
@@ -177,6 +174,32 @@ const styles = StyleSheet.create({
         position: 'absolute',
         width: width,
         height: height,
+        overflow: 'hidden',
+    },
+    mapGridOverlay: {
+        position: 'absolute',
+        width: '100%',
+        height: '100%',
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        opacity: 0.15,
+    },
+    mapGridLine: {
+        width: '12.5%',
+        height: '100%',
+        borderRightWidth: 1,
+        borderColor: '#004d40',
+    },
+    mapLabel: {
+        color: '#004d40',
+        fontSize: 12,
+        fontWeight: '700',
+        marginTop: 8,
+        letterSpacing: 0.5,
+        backgroundColor: 'rgba(255,255,255,0.6)',
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: 8,
     },
     mapMarker: {
         backgroundColor: 'white',
@@ -225,11 +248,22 @@ const styles = StyleSheet.create({
         elevation: 5,
         marginTop: 20,
     },
+    etaHeaderRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: '100%',
+        alignItems: 'center',
+    },
     etaLabel: {
         fontSize: 12,
         fontWeight: '800',
         color: '#E54B4B',
         letterSpacing: 1,
+    },
+    priceLabel: {
+        fontSize: 14,
+        fontWeight: '800',
+        color: '#1A1A1A',
     },
     etaRow: {
         flexDirection: 'row',

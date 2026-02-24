@@ -8,10 +8,13 @@ import {
     ScrollView,
     SafeAreaView,
     Dimensions,
+    Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { CartContext } from '../context/CartContext';
+import { formatPrice } from '../utils/formatters';
+import { APP_CONFIG } from '../constants/config';
 
 const { width } = Dimensions.get('window');
 
@@ -21,21 +24,43 @@ const CheckoutScreen = ({ navigation }) => {
     const [paymentMethod, setPaymentMethod] = useState('online');
 
     const subtotal = total;
-    const deliveryFee = 0; // FREE as per screenshot
-    const vat = subtotal * 0.2;
-    const totalAmount = subtotal + vat;
+    const deliveryFee = APP_CONFIG.DELIVERY_FEE;
+    const conciergeFee = subtotal * 0.05;
+    const totalAmount = subtotal + deliveryFee + conciergeFee;
 
-    const handlePlaceOrder = () => {
-        Alert.alert(
-            'Order Placed',
-            'Your exclusive delivery is on its way.',
-            [{
-                text: 'Great', onPress: () => {
-                    clearCart();
-                    navigation.navigate('OrderTracking');
-                }
-            }]
-        );
+    const handlePlaceOrder = async () => {
+        try {
+            const payload = {
+                userId: 1, // Default guest user
+                items: items.map(item => ({
+                    menuId: item.menuId,
+                    quantity: item.quantity,
+                    price: item.price
+                }))
+            };
+
+            const response = await orderService.create(payload);
+
+            if (response.data.success) {
+                Alert.alert(
+                    'Order Placed',
+                    'Your exclusive delivery is on its way.',
+                    [{
+                        text: 'Great', onPress: () => {
+                            clearCart();
+                            navigation.navigate('OrderTracking', { orderId: response.data.data.id });
+                        }
+                    }]
+                );
+            }
+        } catch (error) {
+            console.error('Error placing order:', error);
+            Alert.alert(
+                'Order Error',
+                'We could not process your elite selection at this time.',
+                [{ text: 'Try Again' }]
+            );
+        }
     };
 
     return (
@@ -147,21 +172,23 @@ const CheckoutScreen = ({ navigation }) => {
                     <View style={styles.summaryTable}>
                         <View style={styles.summaryRow}>
                             <Text style={styles.summaryLabel}>Subtotal ({items.length} items)</Text>
-                            <Text style={styles.summaryValue}>{subtotal.toFixed(2)} MAD</Text>
+                            <Text style={styles.summaryValue}>{formatPrice(subtotal)}</Text>
                         </View>
                         <View style={styles.summaryRow}>
                             <Text style={styles.summaryLabel}>Delivery Fee</Text>
-                            <Text style={[styles.summaryValue, { color: '#2E7D32', fontWeight: '800' }]}>FREE</Text>
+                            <Text style={[styles.summaryValue, deliveryFee === 0 ? { color: '#2E7D32', fontWeight: '800' } : {}]}>
+                                {deliveryFee === 0 ? 'FREE' : formatPrice(deliveryFee)}
+                            </Text>
                         </View>
                         <View style={styles.summaryRow}>
-                            <Text style={styles.summaryLabel}>VAT (20%)</Text>
-                            <Text style={styles.summaryValue}>{vat.toFixed(2)} MAD</Text>
+                            <Text style={styles.summaryLabel}>Concierge Fee (5%)</Text>
+                            <Text style={styles.summaryValue}>{formatPrice(conciergeFee)}</Text>
                         </View>
                     </View>
 
                     <View style={styles.totalRow}>
                         <Text style={styles.totalLabel}>Total Amount</Text>
-                        <Text style={styles.totalValue}>{totalAmount.toFixed(2)} MAD</Text>
+                        <Text style={styles.totalValue}>{formatPrice(totalAmount)}</Text>
                     </View>
                 </View>
 
@@ -192,7 +219,7 @@ const CheckoutScreen = ({ navigation }) => {
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
                 >
-                    <Text style={styles.buttonText}>Place Order • {totalAmount.toFixed(2)} MAD</Text>
+                    <Text style={styles.buttonText}>Place Order • {formatPrice(totalAmount)}</Text>
                     <Ionicons name="arrow-forward" size={24} color="white" />
                 </LinearGradient>
             </TouchableOpacity>

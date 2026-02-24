@@ -35,6 +35,12 @@ const RestaurantListScreen = ({ navigation }) => {
                 setRestaurants(response.data.data);
             } catch (e) {
                 console.error('Error fetching restaurants:', e);
+                // Fallback mock data if API is offline
+                setRestaurants([
+                    { id: 1, name: "L'Artiste du Goût", category: { name: 'French Fusion' }, type: 'Gastronomic', deliveryTime: '20-30 min', rating: 4.9, imageUrl: 'https://images.unsplash.com/photo-1544148103-0773bf10d330?q=80&w=2070' },
+                    { id: 2, name: 'Ocean Breeze Sushi', category: { name: 'Japanese' }, type: 'Authentic', deliveryTime: '25-40 min', rating: 4.8, imageUrl: 'https://images.unsplash.com/photo-1579871494447-9811cf80d66c?q=80&w=2070' },
+                    { id: 3, name: 'La Medina Spice', category: { name: 'Moroccan' }, type: 'Traditional', deliveryTime: '30-45 min', rating: 4.7, imageUrl: 'https://images.unsplash.com/photo-1541518763669-27fef04b14ea?q=80&w=2070' }
+                ]);
             } finally {
                 setLoading(false);
             }
